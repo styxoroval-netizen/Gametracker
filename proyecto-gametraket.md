@@ -106,8 +106,6 @@ GameTracker es una aplicación web para:
 - Control de versiones con **GIT**
 - Mínimo **10 commits**
 - Subir el proyecto a **GitHub**
-  - Un repositorio para **Frontend**
-  - Otro para **Backend**
 - Despliegue final en **GitHub Pages**
 - En Q10 se subirán los enlaces de ambos repos
 
