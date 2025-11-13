@@ -17,9 +17,26 @@ const login = async ({ email, password }) => {
   if (!user) throw new Error('Usuario no encontrado');
   const ok = await bcrypt.compare(password, user.passwordHash);
   if (!ok) throw new Error('Contraseña inválida');
-  const secret = process.env.JWT_SECRET || 'dev_secret';
-  const token = jwt.sign({ sub: user._id, email: user.email }, secret, { expiresIn: '7d' });
-  return { token, user };
+  const accessSecret = process.env.JWT_SECRET || 'dev_secret';
+  const refreshSecret = process.env.JWT_REFRESH_SECRET || 'dev_refresh_secret';
+  const token = jwt.sign({ sub: user._id, email: user.email }, accessSecret, { expiresIn: '15m' });
+  const refreshToken = jwt.sign({ sub: user._id, email: user.email }, refreshSecret, { expiresIn: '30d' });
+  return { token, refreshToken, user };
 };
 
-module.exports = { register, login };
+const refresh = async ({ refreshToken }) => {
+  if (!refreshToken) throw new Error('Refresh token requerido');
+  const refreshSecret = process.env.JWT_REFRESH_SECRET || 'dev_refresh_secret';
+  try {
+    const payload = jwt.verify(refreshToken, refreshSecret);
+    const user = await User.findById(payload.sub);
+    if (!user) throw new Error('Usuario no encontrado');
+    const accessSecret = process.env.JWT_SECRET || 'dev_secret';
+    const token = jwt.sign({ sub: user._id, email: user.email }, accessSecret, { expiresIn: '15m' });
+    return { token, user };
+  } catch (err) {
+    throw new Error('Refresh token inválido');
+  }
+};
+
+module.exports = { register, login, refresh };
